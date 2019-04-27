@@ -28,82 +28,6 @@ public class PaisDAO extends TemplateDAO<PaisDTO>{
         }
     }
 
-    public List<PaisDTO> listarTodos2() {
-
-        List<PaisDTO> resultado = new ArrayList<>();
-
-        try ( Connection conn = DriverManager.getConnection("jdbc:derby:memory:database")) {
-
-            String sql = "SELECT * FROM pais";
-
-            Statement statement = conn.createStatement();
-            ResultSet result = statement.executeQuery(sql);
-
-            int count = 0;
-
-            while (result.next()) {
-
-                resultado.add(
-                        PaisDTO.builder()
-                                .codigoTelefone(result.getInt("codigoTelefone"))
-                                .id(result.getInt("id"))
-                                .nome(result.getString("nome"))
-                                .sigla(result.getString("sigla"))
-                                .build()
-                );
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return resultado;
-    }
-
-    public boolean excluir2(int id) {
-
-        try ( Connection conn = DriverManager.getConnection("jdbc:derby:memory:database")) {
-
-            String sql = "DELETE FROM pais WHERE id=?";
-
-            PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setInt(1, id);
-
-            int rowsDeleted = statement.executeUpdate();
-            if (rowsDeleted > 0) {
-                return true;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    public boolean alterar2(PaisDTO pais) {
-        try ( Connection conn = DriverManager.getConnection("jdbc:derby:memory:database")) {
-
-            String sql = "UPDATE pais SET nome=?, sigla=?, codigoTelefone=? WHERE id=?";
-
-            PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setString(1, pais.getNome());
-            statement.setString(2, pais.getSigla());
-            statement.setInt(3, pais.getCodigoTelefone());
-            statement.setInt(4, pais.getId());
-
-            int rowsUpdated = statement.executeUpdate();
-            if (rowsUpdated > 0) 
-                return true;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        return false;
-    }
-
-
     @Override
     public String InserirSQL() {
         return "INSERT INTO pais (nome, sigla, codigoTelefone) VALUES (?, ?, ?)";
@@ -139,16 +63,41 @@ public class PaisDAO extends TemplateDAO<PaisDTO>{
 
     @Override
     public void inflateStatementAlterar(PreparedStatement statement, PaisDTO entity) {
+        try {
 
+            statement.setString(1, entity.getNome());
+            statement.setString(2, entity.getSigla());
+            statement.setInt(3, entity.getCodigoTelefone());
+            statement.setInt(4, entity.getId());
+
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        }
     }
 
     @Override
     public void inflateStatementExcluir(PreparedStatement statement, int id) {
+        try {
 
+            statement.setInt(1, id);
+
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        }
     }
 
     @Override
-    public PaisDTO inflateEntity(ResultSet rs) {
+    public PaisDTO inflateEntity(ResultSet result) {
+        try {
+            return PaisDTO.builder()
+                    .codigoTelefone(result.getInt("codigoTelefone"))
+                    .id(result.getInt("id"))
+                    .nome(result.getString("nome"))
+                    .sigla(result.getString("sigla"))
+                    .build();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 }

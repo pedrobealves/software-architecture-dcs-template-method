@@ -1,6 +1,7 @@
 package br.edu.utfpr.dao;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -92,16 +93,45 @@ public abstract class TemplateDAO<T> {
      * @return
      */
     public List<T> listarTodos() {
-        throw new UnsupportedOperationException();
-    }
+
+        List<T> resultado = new ArrayList<>();
+
+        try ( Connection conn = DriverManager.getConnection("jdbc:derby:memory:database")) {
+
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery(ListarSQL());
+
+            while (result.next()) {
+                resultado.add(inflateEntity(result));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultado;    }
 
     /**
      * @param id
      * @return
      */
     public boolean excluir(int id) {
-        throw new UnsupportedOperationException();
-    }
+        try ( Connection conn = DriverManager.getConnection(DEFAULT_URL)) {
+
+            PreparedStatement statement = conn.prepareStatement(ExcluirSQL());
+
+            inflateStatementExcluir(statement,id);
+
+            int rowsDeleted = statement.executeUpdate();
+            if (rowsDeleted > 0) {
+                return true;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;    }
 
     /**
      *
@@ -109,7 +139,20 @@ public abstract class TemplateDAO<T> {
      * @return
      */
     public boolean alterar(T entity) {
-        throw new UnsupportedOperationException();
-    }
+        try ( Connection conn = DriverManager.getConnection(DEFAULT_URL)) {
+
+            PreparedStatement statement = conn.prepareStatement(AlterarSQL());
+
+            inflateStatementAlterar(statement,entity);
+
+            int rowsUpdated = statement.executeUpdate();
+            if (rowsUpdated > 0)
+                return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;    }
 
     }
